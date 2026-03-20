@@ -35,6 +35,289 @@
     .tech-border::before { content: ''; position: absolute; top: -5px; left: -5px; width: 10px; height: 10px; border-top: 2px solid #E67E22; border-left: 2px solid #E67E22; }
     .tech-border::after { content: ''; position: absolute; bottom: -5px; right: -5px; width: 10px; height: 10px; border-bottom: 2px solid #E67E22; border-right: 2px solid #E67E22; }
   </style>
+
+  <!-- ===== CHATBOT STYLES ===== -->
+  <style data-purpose="chatbot">
+    #chat-toggle-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 1000;
+      width: 58px;
+      height: 58px;
+      border-radius: 0;
+      background: #2C3E50;
+      border: 2px solid #E67E22;
+      cursor: pointer;
+      box-shadow: 4px 4px 0px #E67E22;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    #chat-toggle-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #E67E22;
+    }
+    #chat-toggle-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #E67E22;
+    }
+    #chat-toggle-btn .icon-chat,
+    #chat-toggle-btn .icon-close {
+      position: absolute;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    #chat-toggle-btn .icon-close { opacity: 0; transform: rotate(-90deg) scale(0.7); }
+    #chat-toggle-btn.open .icon-chat { opacity: 0; transform: rotate(90deg) scale(0.7); }
+    #chat-toggle-btn.open .icon-close { opacity: 1; transform: rotate(0deg) scale(1); }
+
+    #chat-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 18px;
+      height: 18px;
+      background: #E67E22;
+      border-radius: 0;
+      font-size: 10px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      transition: opacity 0.2s ease;
+    }
+
+    #chat-window {
+      position: fixed;
+      bottom: 100px;
+      right: 28px;
+      z-index: 999;
+      width: 380px;
+      max-height: 560px;
+      border-radius: 0;
+      background: #ffffff;
+      background-image: 
+        linear-gradient(to right, rgba(44, 62, 80, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(44, 62, 80, 0.04) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border: 2px solid #2C3E50;
+      box-shadow: 6px 6px 0px #E67E22;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: scale(0.85) translateY(20px);
+      transform-origin: bottom right;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+    }
+    #chat-window.open {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #chat-header {
+      padding: 14px 16px;
+      background: #2C3E50;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      border-bottom: 3px solid #E67E22;
+    }
+    #chat-header .avatar {
+      width: 36px;
+      height: 36px;
+      background: #E67E22;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 13px;
+      color: white;
+    }
+    #chat-header .info h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      font-family: 'Space Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      line-height: 1.2;
+    }
+    #chat-header .info p {
+      font-size: 10px;
+      color: rgba(255,255,255,0.55);
+      font-family: 'Space Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #chat-header .info p::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #E67E22;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+    #chat-messages::-webkit-scrollbar { width: 3px; }
+    #chat-messages::-webkit-scrollbar-track { background: transparent; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #E67E22; border-radius: 0; }
+
+    .msg-row { display: flex; align-items: flex-end; gap: 8px; }
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 26px;
+      height: 26px;
+      background: #2C3E50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      color: #E67E22;
+    }
+
+    .msg-bubble {
+      max-width: 78%;
+      padding: 9px 13px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      font-family: 'Inter', sans-serif;
+      border-radius: 0;
+    }
+    .msg-row.bot .msg-bubble {
+      background: white;
+      border: 1px solid #2C3E50;
+      color: #2C3E50;
+      border-bottom-left-radius: 0;
+      box-shadow: 2px 2px 0 rgba(44,62,80,0.1);
+    }
+    .msg-row.user .msg-bubble {
+      background: #2C3E50;
+      color: white;
+      border: 1px solid #2C3E50;
+      border-bottom-right-radius: 0;
+      box-shadow: 2px 2px 0 #E67E22;
+    }
+
+    .msg-time {
+      font-size: 9px;
+      color: #94a3b8;
+      padding: 0 4px;
+      margin-top: 2px;
+      font-family: 'Space Mono', monospace;
+    }
+    .msg-row.user .msg-time { text-align: right; }
+
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
+    .typing-dot {
+      width: 5px; height: 5px;
+      background: #E67E22;
+      border-radius: 0;
+      animation: typing-blink 1.2s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing-blink {
+      0%, 80%, 100% { transform: scaleY(1); opacity: 0.4; }
+      40% { transform: scaleY(1.8); opacity: 1; }
+    }
+
+    #chat-input-area {
+      padding: 10px 12px;
+      border-top: 2px solid #2C3E50;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+      background: #f8f8f8;
+    }
+    #chat-input {
+      flex: 1;
+      background: white;
+      border: 1px solid #2C3E50;
+      border-radius: 0;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: #2C3E50;
+      resize: none;
+      outline: none;
+      min-height: 40px;
+      max-height: 100px;
+      line-height: 1.5;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    #chat-input:focus {
+      border-color: #E67E22;
+      box-shadow: 2px 2px 0 #E67E22;
+    }
+    #chat-input::placeholder { color: #94a3b8; font-family: 'Space Mono', monospace; font-size: 11px; }
+
+    #chat-send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 0;
+      background: #E67E22;
+      border: 1px solid #2C3E50;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.15s ease;
+      box-shadow: 2px 2px 0 #2C3E50;
+    }
+    #chat-send-btn:hover:not(:disabled) {
+      background: #2C3E50;
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 #E67E22;
+    }
+    #chat-send-btn:active:not(:disabled) {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #2C3E50;
+    }
+    #chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .msg-error .msg-bubble {
+      background: #fff0f0 !important;
+      border-color: #E67E22 !important;
+      color: #c0392b !important;
+    }
+
+    @media (max-width: 480px) {
+      #chat-window { width: calc(100vw - 32px); right: 16px; bottom: 90px; }
+      #chat-toggle-btn { right: 16px; bottom: 16px; }
+    }
+  </style>
 </head>
 <body class="font-sans text-anthracite">
 
@@ -71,8 +354,7 @@
     <div class="relative">
       <div class="w-full h-[400px] border-2 border-dashed border-anthracite overflow-hidden relative">
         <img alt="Devanture de l'auto école Drive Academy" class="w-full h-full object-cover grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500" src="https://images.unsplash.com/photo-1630406144797-821be1f35d75?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"/>
-        <div class="absolute bottom-2 left-2 p-2 bg-white/90 font-mono text-[10px] leading-tight text-anthracite border border-anthracite">
-        </div>
+        <div class="absolute bottom-2 left-2 p-2 bg-white/90 font-mono text-[10px] leading-tight text-anthracite border border-anthracite"></div>
       </div>
     </div>
   </div>
@@ -98,7 +380,6 @@
       </div>
       <div class="md:w-2/3 relative">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-2 border-industrialOrange/30 p-2">
-          
           <div class="tech-border bg-white p-4 group">
             <div class="w-full h-auto aspect-video mb-4 overflow-hidden relative border border-gray-100">
               <img alt="Volkswagen Golf 8 technical render" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=80&w=1200"/>
@@ -109,7 +390,6 @@
               <p class="text-[10px] leading-tight">TYPE: G2 Berline Premium<br/</p>
             </div>
           </div>
-          
           <div class="tech-border bg-white p-4 group">
             <div class="w-full h-auto aspect-video mb-4 overflow-hidden relative border border-gray-100">
               <img alt="Fiat 500 technical render" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300" src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=800"/>
@@ -120,7 +400,6 @@
               <p class="text-[10px] leading-tight">TYPE: Urbaine Agile<br/></p>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -136,18 +415,17 @@
       </div>
       <div class="font-mono text-xs text-right opacity-50 hidden sm:block">Taux de réussite: 91.8%</div>
     </div>
-    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
       <div class="bg-white border border-anthracite p-4 group tech-border">
         <div class="h-[350px] bg-gray-100 mb-4 overflow-hidden relative border border-gray-100 rounded-sm">
-          <img alt="Portrait professionnel du moniteur Jean-Pierre K., bien cadré" class="w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-300" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600"/>
+          <img alt="Portrait professionnel du moniteur Jean-Pierre K." class="w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-300" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600"/>
         </div>
         <h4 class="font-bold uppercase text-xl text-anthracite">Jean-Pierre K.</h4>
         <p class="font-mono text-xs text-industrialOrange mt-2 border-t border-gray-100 pt-2 leading-relaxed">DIPLÔME: BEPECASER+ // EXP: 12Y<br/>SPÉCIALISTE PERMIS B</p>
       </div>
       <div class="bg-white border border-anthracite p-4 group tech-border">
         <div class="h-[350px] bg-gray-100 mb-4 overflow-hidden relative border border-gray-100 rounded-sm">
-          <img alt="Portrait professionnel de la monitrice Sara L., bien cadrée" class="w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-300" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600"/>
+          <img alt="Portrait professionnel de la monitrice Sara L." class="w-full h-full object-cover object-center grayscale hover:grayscale-0 transition-all duration-300" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600"/>
         </div>
         <h4 class="font-bold uppercase text-xl text-anthracite">Sara L.</h4>
         <p class="font-mono text-xs text-industrialOrange mt-2 border-t border-gray-100 pt-2 leading-relaxed">DIPLÔME: Titre Pro ECSR // EXP: 8Y<br/>COACH PERMIS AAC & EXPRESS</p>
@@ -179,12 +457,9 @@
           </div>
         </div>
       </div>
-      
       <div class="bg-white p-2 border border-white/10 tech-border rounded-lg relative overflow-hidden group">
-          <img alt="Capture d'écran de l'application Maestro affichant un tableau de bord de suivi" class="w-full h-auto grayscale contrast-125" src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=800"/>
-          <div class="absolute inset-0 bg-brandWhite/90 font-mono text-[11px] text-anthracite p-4 group-hover:bg-brandWhite/0 transition-all duration-300"><br/>
-
-          </div>
+        <img alt="Capture d'écran de l'application Maestro" class="w-full h-auto grayscale contrast-125" src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=800"/>
+        <div class="absolute inset-0 bg-brandWhite/90 font-mono text-[11px] text-anthracite p-4 group-hover:bg-brandWhite/0 transition-all duration-300"></div>
       </div>
     </div>
   </div>
@@ -258,12 +533,11 @@
       <div class="flex items-start gap-4 text-industrialOrange">
         📍 
         <div>
-          <p class="font-bold uppercase text-anthracite mb-1">Adresse </p>
+          <p class="font-bold uppercase text-anthracite mb-1">Adresse</p>
           <p class="text-[10px] leading-relaxed text-gray-600">Avenue de la Précision 24<br/>75013 Paris, France</p>
         </div>
       </div>
     </div>
-    
     <div class="flex flex-grow justify-around max-w-lg">
       <div class="tech-border bg-gray-50 p-4">
         <h5 class="font-bold uppercase text-anthracite mb-3">Contact</h5>
@@ -280,6 +554,196 @@
     AGRÉMENT PREFECTORAL N°75001 EST. 2024 // CERTIFICATIONS: BEPECASER+ECSR
   </div>
 </footer>
+
+
+<!-- ===== CHATBOT WIDGET ===== -->
+
+<!-- Toggle Button -->
+<button id="chat-toggle-btn" aria-label="Ouvrir le chat">
+  <span id="chat-badge">1</span>
+  <span class="icon-chat">
+    <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  </span>
+  <span class="icon-close">
+    <svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24">
+      <path d="M18 6L6 18M6 6l12 12"/>
+    </svg>
+  </span>
+</button>
+
+<!-- Chat Window -->
+<div id="chat-window" role="dialog" aria-label="Chat Drive Academy">
+
+  <div id="chat-header">
+    <div class="avatar">DA</div>
+    <div class="info">
+      <h4>Drive_Academy</h4>
+      <p>Assistance en ligne</p>
+    </div>
+  </div>
+
+  <div id="chat-messages"></div>
+
+  <div id="chat-input-area">
+    <textarea id="chat-input" placeholder="// Votre question..." rows="1" aria-label="Message"></textarea>
+    <button id="chat-send-btn" aria-label="Envoyer">
+      <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  const WEBHOOK_URL = 'https://n8n.srv959772.hstgr.cloud/webhook/41a0797f-1756-48da-b74b-4552a8a0171d';
+
+  const toggleBtn = document.getElementById('chat-toggle-btn');
+  const chatWindow = document.getElementById('chat-window');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send-btn');
+  const badge = document.getElementById('chat-badge');
+
+  let isOpen = false;
+  let isSending = false;
+
+  function init() {
+    addMessage('bot', 'Bonjour. Bienvenue chez Drive_Academy. Comment puis-je vous aider ?');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    isOpen = !isOpen;
+    chatWindow.classList.toggle('open', isOpen);
+    toggleBtn.classList.toggle('open', isOpen);
+    badge.style.opacity = '0';
+    if (isOpen) setTimeout(() => chatInput.focus(), 300);
+  });
+
+  function getTime() {
+    return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function addMessage(role, text, isError = false) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${role}${isError ? ' msg-error' : ''}`;
+
+    if (role === 'bot') {
+      const av = document.createElement('div');
+      av.className = 'msg-avatar';
+      av.textContent = 'DA';
+      row.appendChild(av);
+    }
+
+    const col = document.createElement('div');
+    col.style.cssText = 'display:flex;flex-direction:column;gap:3px;' + (role === 'user' ? 'align-items:flex-end;' : '');
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+
+    const time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = getTime();
+
+    col.appendChild(bubble);
+    col.appendChild(time);
+    row.appendChild(col);
+    chatMessages.appendChild(row);
+    scrollToBottom();
+  }
+
+  function showTyping() {
+    const row = document.createElement('div');
+    row.className = 'msg-row bot';
+    row.id = 'typing-row';
+    const av = document.createElement('div');
+    av.className = 'msg-avatar';
+    av.textContent = 'DA';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    row.appendChild(av);
+    row.appendChild(bubble);
+    chatMessages.appendChild(row);
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typing-row');
+    if (el) el.remove();
+  }
+
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text || isSending) return;
+
+    isSending = true;
+    sendBtn.disabled = true;
+    chatInput.value = '';
+    autoResize();
+    addMessage('user', text);
+    showTyping();
+
+    const payload = JSON.stringify({ message: text, timestamp: new Date().toISOString() });
+
+    try {
+      // text/plain évite le preflight CORS OPTIONS
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: payload
+      });
+
+      hideTyping();
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+
+      const raw = await response.text();
+      let reply = '';
+      try {
+        const data = JSON.parse(raw);
+        const src = Array.isArray(data) ? data[0] : data;
+        reply = src?.output ?? src?.message ?? src?.reply ?? src?.text ?? src?.response ?? src?.answer ?? src?.content ?? '';
+        if (!reply) reply = typeof data === 'string' ? data : JSON.stringify(data);
+      } catch (e) {
+        reply = raw;
+      }
+
+      addMessage('bot', reply.trim() || 'Message reçu. Notre équipe vous répondra sous peu.');
+
+    } catch (err) {
+      hideTyping();
+      console.error('Chatbot error:', err.message);
+      try {
+        await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: payload });
+        addMessage('bot', 'Message transmis ✓ Nous vous répondrons dans les plus brefs délais.');
+      } catch (e) {
+        addMessage('bot', '// ERREUR: Connexion impossible. Tel: +33 1 23 45 67 89', true);
+      }
+    } finally {
+      isSending = false;
+      sendBtn.disabled = false;
+      chatInput.focus();
+    }
+  }
+
+  function autoResize() {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+  }
+
+  chatInput.addEventListener('input', autoResize);
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  sendBtn.addEventListener('click', sendMessage);
+  init();
+</script>
 
 </body>
 </html>
